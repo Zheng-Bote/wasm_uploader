@@ -1,11 +1,16 @@
-# WASM parallel uploader
-
+<div id="top" align="center">
+  <h1>WASM parallel uploader</h1>
+<p>Web Worker that coordinates parallel chunked uploads controlled by a WebAssembly engine</p>
+  
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)]()
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Zheng-Bote/wasm_uploader?logo=GitHub)](https://github.com/Zheng-Bote/wasm_uploader/releases)
 
 [Report Issue](https://github.com/Zheng-Bote/wasm_uploader/issues) · [Request Feature](https://github.com/Zheng-Bote/wasm_uploader/pulls)
+</div>
+
+---
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -43,11 +48,14 @@ the app already covers login, chunking, parallel uploads, PUT/POST modes, and a 
 ## Files
 
 **upload_engine.cpp** — C++ upload engine exposing a single C ABI function wasm_handle_message(inPtr,inLen,outPtr,outCap) -> outLen. Uses nlohmann::json for message parsing and response generation.
+
 **upload_engine.mjs** and **upload_engine.wasm** — generated Emscripten outputs (JS wrapper + WASM).
+
 **upload_worker.js** — Web Worker that loads the Emscripten module, marshals JSON messages into the WASM heap, performs chunk uploads (PUT or POST multipart/form-data with fields photo and path), and posts progress messages back to the main thread.
+
 **main.js** — Browser client: login flow, file selection, path suggestion and editing, job creation, and worker messaging.
+
 **index.html** — Minimal UI for login, file selection, path editing, method selection, and progress display.
-**README.md** — This file.
 
 ## Prerequisites
 
@@ -137,5 +145,5 @@ Copyright (c) 2026 ZHENG Robert.
 ![Contributors](https://img.shields.io/github/contributors/Zheng-Bote/wasm_uploader?color=dark-green)
 
 ---
-
+<p align="right">(<a href="#top">back to top</a>)</p>
 **Happy coding! 🚀** :vulcan_salute:
