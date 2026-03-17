@@ -9,6 +9,20 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Project Overview](#project-overview)
+  - [Features](#features)
+- [Screenshots](#screenshots)
+- [Files](#files)
+- [Prerequisites](#prerequisites)
+- [Build Instructions](#build-instructions)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+- [Notes and Next Steps](#notes-and-next-steps)
+- [📝 License](#-license)
+- [Author](#author)
+  - [Code Contributors](#code-contributors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
