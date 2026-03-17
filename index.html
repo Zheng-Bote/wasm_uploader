@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>WASM Parallel Upload — Login & Upload</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #0f1724;
+        --card: #0b1220;
+        --muted: #9aa4b2;
+        --accent: #4caf50;
+        --accent-2: #60a5fa;
+        --danger: #ef4444;
+        --glass: rgba(255, 255, 255, 0.04);
+        --radius: 12px;
+        --max-width: 980px;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          "Helvetica Neue",
+          Arial;
+        background: linear-gradient(180deg, #071022 0%, #071a2a 60%);
+        color: #e6eef6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: var(--max-width);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        border-radius: var(--radius);
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+        padding: 22px;
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+
+      header {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 6px;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #04202a;
+        box-shadow: 0 6px 18px rgba(96, 165, 250, 0.12);
+        font-size: 20px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      p.lead {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      /* left column (controls) */
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      select,
+      input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: transparent;
+        color: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      button.primary {
+        background: linear-gradient(90deg, var(--accent), #3db86b);
+        color: #04202a;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.12);
+      }
+      button.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      /* file area */
+      .file-drop {
+        margin-top: 8px;
+        border: 2px dashed rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.005),
+          transparent
+        );
+      }
+      .file-drop.dragover {
+        border-color: rgba(96, 165, 250, 0.6);
+        background: linear-gradient(
+          180deg,
+          rgba(96, 165, 250, 0.02),
+          transparent
+        );
+      }
+      .file-list {
+        max-height: 220px;
+        overflow: auto;
+        padding: 6px;
+        border-radius: 8px;
+      }
+      .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        border-radius: 8px;
+        background: var(--glass);
+        margin-bottom: 6px;
+      }
+      .file-meta {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .file-name {
+        font-size: 13px;
+      }
+      .file-size {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* right column (preview + progress) */
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .progress-wrap {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px;
+        border-radius: 10px;
+      }
+      .progress-bar {
+        height: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .progress-bar > i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-2), var(--accent));
+        transition: width 300ms ease;
+      }
+
+      .status {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .token {
+        font-family: monospace;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px;
+        border-radius: 8px;
+        color: #cfeef5;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      footer {
+        grid-column: 1/-1;
+        text-align: right;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+      }
+
+      /* responsive */
+      @media (max-width: 980px) {
+        .container {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+        .logo {
+          width: 48px;
+          height: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" role="application" aria-label="Upload application">
+      <header>
+        <div class="logo">WU</div>
+        <div>
+          <h1>WASM Parallel Upload</h1>
+          <p class="lead">
+            Login, choose PUT or POST, edit a shared upload path and upload
+            images in parallel.
+          </p>
+        </div>
+      </header>
+
+      <!-- left column: controls -->
+      <div class="card" aria-hidden="false">
+        <div
+          style="
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+          "
+        >
+          <strong>Authentication</strong>
+          <span class="small">JWT stored in memory only</span>
+        </div>
+
+        <label for="authUrl">Auth URL</label>
+        <input id="authUrl" type="text" value="https://example.com/api/login" />
+
+        <div style="display: flex; gap: 8px; margin-top: 10px">
+          <div style="flex: 1">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@example.com" />
+          </div>
+          <div style="width: 160px">
+            <label for="password">Password</label>
+            <input id="password" type="password" />
+          </div>
+        </div>
+
+        <div
+          style="display: flex; gap: 8px; margin-top: 12px; align-items: center"
+        >
+          <button id="loginBtn" class="primary">Login</button>
+          <button id="logoutBtn" class="ghost" style="display: none">
+            Logout
+          </button>
+          <div
+            id="loginStatus"
+            class="small"
+            style="margin-left: auto; color: var(--muted)"
+          >
+            Not logged in
+          </div>
+        </div>
+
+        <hr
+          style="
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            margin: 12px 0;
+          "
+        />
+
+        <strong>Files & Upload</strong>
+        <label for="uploadUrl" style="margin-top: 8px">Upload URL</label>
+        <input
+          id="uploadUrl"
+          type="text"
+          value="https://httpbin.org/anything"
+        />
+
+        <div
+          style="display: flex; gap: 8px; margin-top: 8px; align-items: center"
+        >
+          <div style="flex: 1">
+            <label for="httpMethod">HTTP Method</label>
+            <select id="httpMethod">
+              <option>PUT</option>
+              <option>POST</option>
+            </select>
+          </div>
+          <div style="width: 120px">
+            <label for="parallel">Parallel</label>
+            <input id="parallel" type="number" min="1" max="12" value="3" />
+          </div>
+        </div>
+
+        <label style="margin-top: 10px"
+          >Upload Path (applies to all images)</label
+        >
+        <input id="uploadPath" type="text" placeholder="/albums/holiday/2026" />
+
+        <div class="file-drop" id="fileDrop" aria-label="File drop area">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div class="small">Drag & drop files or click to select</div>
+            <div class="small" id="fileCount">No files selected</div>
+          </div>
+
+          <input
+            id="fileInput"
+            type="file"
+            multiple
+            webkitdirectory
+            style="display: none"
+          />
+
+          <div class="file-list" id="fileList" aria-live="polite"></div>
+
+          <div style="display: flex; gap: 8px; margin-top: 8px">
+            <button id="chooseBtn" class="ghost">Choose files</button>
+            <button id="startUploadBtn" class="primary" disabled>
+              Start Upload
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- right column: preview + progress -->
+      <div class="panel">
+        <div class="card progress-wrap">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <strong>Upload Progress</strong>
+            <div class="small" id="progressPercent">0%</div>
+          </div>
+
+          <div
+            class="progress-bar"
+            aria-hidden="false"
+            style="margin-top: 10px"
+          >
+            <i id="progressFill" style="width: 0%"></i>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              margin-top: 12px;
+              align-items: center;
+            "
+          >
+            <div style="flex: 1">
+              <div class="status" id="statusText">Idle</div>
+              <div class="small" id="bytesText">0 / 0 bytes</div>
+            </div>
+            <div style="width: 260px">
+              <div class="small">JWT (masked)</div>
+              <div class="token" id="tokenBox">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <strong>Activity Log</strong>
+          <div
+            id="log"
+            class="small"
+            style="
+              margin-top: 8px;
+              max-height: 260px;
+              overflow: auto;
+              color: var(--muted);
+            "
+          ></div>
+        </div>
+      </div>
+
+      <footer>Built for demo • Keep your credentials safe</footer>
+    </div>
+
+    <script type="module">
+      // Minimal UI glue: connects to main.js behavior while keeping UI polished.
+      // This script mirrors the expected main.js API: it forwards events and updates UI elements.
+      // Replace or extend with your existing main.js logic as needed.
+
+      import workerModule from "./main.js";
+
+      // Elements
+      const fileInput = document.getElementById("fileInput");
+      const chooseBtn = document.getElementById("chooseBtn");
+      const fileDrop = document.getElementById("fileDrop");
+      const fileList = document.getElementById("fileList");
+      const fileCount = document.getElementById("fileCount");
+      const startUploadBtn = document.getElementById("startUploadBtn");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const loginStatus = document.getElementById("loginStatus");
+      const tokenBox = document.getElementById("tokenBox");
+      const progressFill = document.getElementById("progressFill");
+      const progressPercent = document.getElementById("progressPercent");
+      const statusText = document.getElementById("statusText");
+      const bytesText = document.getElementById("bytesText");
+      const logEl = document.getElementById("log");
+
+      // Forward UI actions to main.js (which should export functions used below).
+      // main.js in the project already wires up a Worker and handles login/upload.
+      // Here we only provide lightweight UI behavior and call the existing handlers.
+
+      // File selection
+      chooseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => {
+        updateFileList(e.target.files);
+        // call main.js file-change handler if present
+        if (typeof window.onFilesSelected === "function")
+          window.onFilesSelected(e);
+      });
+
+      // Drag & drop
+      fileDrop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        fileDrop.classList.add("dragover");
+      });
+      fileDrop.addEventListener("dragleave", () =>
+        fileDrop.classList.remove("dragover"),
+      );
+      fileDrop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileDrop.classList.remove("dragover");
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+          fileInput.files = dt.files;
+          updateFileList(dt.files);
+          if (typeof window.onFilesSelected === "function")
+            window.onFilesSelected({ target: { files: dt.files } });
+        }
+      });
+
+      // Start upload
+      startUploadBtn.addEventListener("click", async () => {
+        startUploadBtn.disabled = true;
+        log("Starting upload…");
+        if (typeof window.onStartUpload === "function") {
+          try {
+            await window.onStartUpload();
+          } catch (err) {
+            log("Upload error: " + err.message);
+          }
+        }
+        startUploadBtn.disabled = false;
+      });
+
+      // Login / logout UI
+      loginBtn.addEventListener("click", async () => {
+        loginBtn.disabled = true;
+        loginStatus.textContent = "Logging in…";
+        if (typeof window.onLogin === "function") {
+          const ok = await window.onLogin();
+          if (ok) {
+            loginStatus.textContent = "Logged in";
+            logoutBtn.style.display = "inline-block";
+            loginBtn.style.display = "none";
+            startUploadBtn.disabled = false;
+            tokenBox.textContent = maskToken(window.__jwt || "");
+          } else {
+            loginStatus.textContent = "Login failed";
+          }
+        }
+        loginBtn.disabled = false;
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        if (typeof window.onLogout === "function") window.onLogout();
+        loginStatus.textContent = "Not logged in";
+        logoutBtn.style.display = "none";
+        loginBtn.style.display = "inline-block";
+        tokenBox.textContent = "—";
+        startUploadBtn.disabled = true;
+      });
+
+      // Helpers
+      function updateFileList(files) {
+        fileList.innerHTML = "";
+        if (!files || files.length === 0) {
+          fileCount.textContent = "No files selected";
+          return;
+        }
+        fileCount.textContent = files.length + " file(s)";
+        Array.from(files).forEach((f, i) => {
+          const item = document.createElement("div");
+          item.className = "file-item";
+          const meta = document.createElement("div");
+          meta.className = "file-meta";
+          const name = document.createElement("div");
+          name.className = "file-name";
+          name.textContent = f.name;
+          const size = document.createElement("div");
+          size.className = "file-size";
+          size.textContent = humanBytes(f.size);
+          meta.appendChild(name);
+          meta.appendChild(size);
+          const badge = document.createElement("div");
+          badge.className = "small";
+          badge.textContent = "ready";
+          item.appendChild(meta);
+          item.appendChild(badge);
+          fileList.appendChild(item);
+        });
+      }
+
+      function humanBytes(n) {
+        if (n < 1024) return n + " B";
+        if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+        if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+        return (n / 1024 / 1024 / 1024).toFixed(2) + " GB";
+      }
+
+      function log(msg) {
+        const t = new Date().toLocaleTimeString();
+        logEl.innerHTML =
+          `<div>[${t}] ${escapeHtml(msg)}</div>` + logEl.innerHTML;
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[m],
+        );
+      }
+
+      function maskToken(t) {
+        if (!t) return "—";
+        if (t.length < 20) return t.replace(/.(?=.{4})/g, "*");
+        return t.slice(0, 6) + "…" + t.slice(-6);
+      }
+
+      // Expose small API hooks for main.js to update UI
+      window.__ui = {
+        setProgress: (uploaded, total) => {
+          const pct = total ? Math.round((uploaded / total) * 100) : 0;
+          progressFill.style.width = pct + "%";
+          progressPercent.textContent = pct + "%";
+          statusText.textContent = pct ? "Uploading" : "Idle";
+          bytesText.textContent = `${uploaded} / ${total} bytes`;
+        },
+        setStatus: (s) => {
+          statusText.textContent = s;
+        },
+        setToken: (token) => {
+          window.__jwt = token;
+          tokenBox.textContent = maskToken(token);
+        },
+        appendLog: (s) => log(s),
+        enableStart: (v) => {
+          startUploadBtn.disabled = !v;
+        },
+      };
+
+      // Initial state
+      updateFileList(fileInput.files);
+      log("UI ready");
+    </script>
+  </body>
+</html>
